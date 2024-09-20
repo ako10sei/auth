@@ -22,7 +22,12 @@ func main() {
 	if err != nil {
 		log.Fatalf("failed to connect to server: %v", err)
 	}
-	defer conn.Close()
+	defer func(conn *grpc.ClientConn) {
+		err := conn.Close()
+		if err != nil {
+			log.Fatalf("failed to close connection: %v", err)
+		}
+	}(conn)
 
 	c := desc.NewUserV1Client(conn)
 

@@ -19,7 +19,7 @@ type server struct {
 }
 
 // Get ...
-func (s *server) Get(ctx context.Context, req *desc.GetRequest) (*desc.GetResponse, error) {
+func (s *server) Get(_ context.Context, req *desc.GetRequest) (*desc.GetResponse, error) {
 	log.Printf("Note id: %d", req.GetId())
 
 	return &desc.GetResponse{
