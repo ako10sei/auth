@@ -5,49 +5,117 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"sync"
 
 	desc "github.com/ako10sei/auth/pkg/user_v1"
-	"github.com/brianvoe/gofakeit"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 const grpcPort = 50051
 
 type server struct {
 	desc.UnimplementedUserV1Server
+	mu    sync.Mutex
+	users map[int64]*desc.User
 }
 
-// Get ...
-func (s *server) Get(ctx context.Context, req *desc.GetRequest) (*desc.GetResponse, error) {
-	log.Printf("Note id: %d", req.GetId())
+// Create method
+func (s *server) Create(ctx context.Context, req *desc.CreateRequest) (*desc.CreateResponse, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 
-	return &desc.GetResponse{
-		User: &desc.User{
-			Id: req.GetId(),
-			Info: &desc.UserInfo{
-				Name:            gofakeit.Name(),
-				Email:           gofakeit.Email(),
-				Password:        gofakeit.Street(),
-				PasswordConfirm: gofakeit.Street(),
-				Enum:            desc.Role_ADMIN,
-			},
+	// Генерация нового ID для пользователя
+	newID := int64(len(s.users) + 1)
+	user := &desc.User{
+		Id: newID,
+		Info: &desc.UserInfo{
+			Name:            req.GetInfo().GetName(),
+			Email:           req.GetInfo().GetEmail(),
+			Password:        req.GetInfo().GetPassword(),
+			PasswordConfirm: req.GetInfo().GetPasswordConfirm(),
+			Enum:            req.GetInfo().GetEnum(),
 		},
+	}
+
+	s.users[newID] = user
+
+	log.Printf("Created user: %v", user)
+	return &desc.CreateResponse{
+		User: user,
 	}, nil
 }
 
+// Get method (already implemented)
+func (s *server) Get(ctx context.Context, req *desc.GetRequest) (*desc.GetResponse, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	user, exists := s.users[req.GetId()]
+	if !exists {
+		return nil, fmt.Errorf("user not found")
+	}
+
+	log.Printf("Retrieved user with ID: %d", req.GetId())
+	return &desc.GetResponse{
+		User: user,
+	}, nil
+}
+
+// Update method
+func (s *server) Update(ctx context.Context, req *desc.UpdateRequest) (*emptypb.Empty, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	user, exists := s.users[req.GetId()]
+	if !exists {
+		return nil, fmt.Errorf("user not found")
+	}
+
+	if req.GetName() != nil {
+		user.Info.Name = req.GetName().GetValue()
+	}
+	if req.GetEmail() != nil {
+		user.Info.Email = req.GetEmail().GetValue()
+	}
+
+	log.Printf("Updated user with ID: %d", req.GetId())
+	return &emptypb.Empty{}, nil
+}
+
+// Delete method
+func (s *server) Delete(ctx context.Context, req *desc.DeleteRequest) (*emptypb.Empty, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	_, exists := s.users[req.GetId()]
+	if !exists {
+		return nil, fmt.Errorf("user not found")
+	}
+
+	delete(s.users, req.GetId())
+	log.Printf("Deleted user with ID: %d", req.GetId())
+	return &emptypb.Empty{}, nil
+}
+
+// Main function
 func main() {
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", grpcPort))
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
 
+	// Инициализируем сервер и сохраняем пользователей в памяти
 	s := grpc.NewServer()
 	reflection.Register(s)
-	desc.RegisterUserV1Server(s, &server{})
+
+	srv := &server{
+		users: make(map[int64]*desc.User),
+	}
+	desc.RegisterUserV1Server(s, srv)
 
 	log.Printf("server listening at %v", lis.Addr())
-
 	if err = s.Serve(lis); err != nil {
 		log.Fatalf("failed to serve: %v", err)
 	}

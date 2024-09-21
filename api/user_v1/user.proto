@@ -31,11 +31,6 @@ enum Role {
 message User {
   int64 id = 1;
   UserInfo info = 2;
-  string name = 3;
-  string email = 4;
-  string password = 5;
-  string password_confirm = 6;
-  Role enum = 7;
 }
 
 message CreateRequest {
