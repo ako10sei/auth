@@ -13,6 +13,7 @@ service UserV1 {
   rpc Get(GetRequest) returns (GetResponse);
   rpc Update(UpdateRequest) returns (google.protobuf.Empty);
   rpc Delete(DeleteRequest) returns (google.protobuf.Empty);
+  rpc List(ListRequest) returns (ListResponse);
 }
 
 message UserInfo {
@@ -57,4 +58,13 @@ message UpdateRequest {
 
 message DeleteRequest {
   int64 id = 1;
+}
+
+message ListRequest {
+  int64 limit = 1;
+  int64 offset = 2;
+}
+
+message ListResponse {
+  repeated User users = 1;
 }

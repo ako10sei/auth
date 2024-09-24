@@ -16,9 +16,9 @@ get-deps:
 
 
 generate:
-	make generate-note-api
+	make generate-auth-api
 
-generate-note-api:
+generate-auth-api:
 	mkdir -p pkg/user_v1
 	protoc --proto_path=api/user_v1 \
     --go_out=pkg/user_v1 --go_opt=paths=source_relative \
