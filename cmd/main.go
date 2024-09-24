@@ -36,6 +36,13 @@ func (s *server) List(_ context.Context, req *desc.ListRequest) (*desc.ListRespo
 		return nil, fmt.Errorf("required parameter is missing: offset")
 	}
 
+	if _, exists := s.users[l]; !exists {
+		return nil, fmt.Errorf("user with id %v does not exist", l)
+	}
+	if _, exists := s.users[o]; !exists {
+		return nil, fmt.Errorf("user with id %v does not exist", o)
+	}
+
 	users := make([]*desc.User, 0, l)
 
 	for i := l; i <= o; i++ {
