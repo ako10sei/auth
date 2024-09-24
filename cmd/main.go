@@ -21,6 +21,32 @@ type server struct {
 	users map[int64]*desc.User
 }
 
+func (s *server) List(_ context.Context, req *desc.ListRequest) (*desc.ListResponse, error) {
+
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	l := req.GetLimit()
+	if l == 0 {
+		return nil, fmt.Errorf("required parameter is missing: limit")
+	}
+
+	o := req.GetOffset()
+	if o == 0 {
+		return nil, fmt.Errorf("required parameter is missing: offset")
+	}
+
+	users := make([]*desc.User, 0, l)
+
+	for i := l; i <= o; i++ {
+		users = append(users, s.users[i])
+	}
+
+	return &desc.ListResponse{
+		Users: users,
+	}, nil
+}
+
 // Create method
 func (s *server) Create(_ context.Context, req *desc.CreateRequest) (*desc.CreateResponse, error) {
 	s.mu.Lock()
