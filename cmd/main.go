@@ -14,6 +14,9 @@ import (
 )
 
 const grpcPort = 50051
+const userNotFound = "user not found"
+
+//TODO: get port from config
 
 type server struct {
 	desc.UnimplementedUserV1Server
@@ -87,7 +90,7 @@ func (s *server) Get(_ context.Context, req *desc.GetRequest) (*desc.GetResponse
 
 	user, exists := s.users[req.GetId()]
 	if !exists {
-		return nil, fmt.Errorf("user not found")
+		return nil, fmt.Errorf(userNotFound)
 	}
 
 	log.Printf("Retrieved user with ID: %d", req.GetId())
@@ -103,7 +106,7 @@ func (s *server) Update(_ context.Context, req *desc.UpdateRequest) (*emptypb.Em
 
 	user, exists := s.users[req.GetId()]
 	if !exists {
-		return nil, fmt.Errorf("user not found")
+		return nil, fmt.Errorf(userNotFound)
 	}
 
 	if req.GetName() != nil {
@@ -124,7 +127,7 @@ func (s *server) Delete(_ context.Context, req *desc.DeleteRequest) (*emptypb.Em
 
 	_, exists := s.users[req.GetId()]
 	if !exists {
-		return nil, fmt.Errorf("user not found")
+		return nil, fmt.Errorf(userNotFound)
 	}
 
 	delete(s.users, req.GetId())
