@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/ako10sei/auth/internal/config"
 	"log"
 	"net"
 	"sync"
@@ -13,10 +14,7 @@ import (
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
-const grpcPort = 50051
 const userNotFound = "user not found"
-
-//TODO: get port from config
 
 type server struct {
 	desc.UnimplementedUserV1Server
@@ -137,7 +135,9 @@ func (s *server) Delete(_ context.Context, req *desc.DeleteRequest) (*emptypb.Em
 
 // Main function
 func main() {
-	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", grpcPort))
+
+	cfg := config.MustLoad()
+	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", cfg.Port))
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
