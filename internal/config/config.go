@@ -6,17 +6,20 @@ import (
 	"os"
 )
 
+// Config parse
 type Config struct {
 	Env     string `yaml:"env" env-default:"local" env-required:"true"`
 	Storage `yaml:"storage"`
 	Network `yaml:"network"`
 }
 
+// Network parse
 type Network struct {
 	Address string `yaml:"address"  env-default:"localhost"`
 	Port    int    `yaml:"port"  env-default:"5551"`
 }
 
+// Storage parse
 type Storage struct {
 	StoragePath string `yaml:"storage_path" env-required:"true"`
 	Name        string `yaml:"db_name"`
@@ -24,6 +27,7 @@ type Storage struct {
 	Password    string `yaml:"password"`
 }
 
+// MustLoad parse config and returns Config struct object
 func MustLoad() *Config {
 	configPath := os.Getenv("CONFIG_PATH")
 	if configPath == "" {
