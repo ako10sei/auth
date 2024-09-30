@@ -3,10 +3,11 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/ako10sei/auth/internal/config"
 	"log"
 	"net"
 	"sync"
+
+	"github.com/ako10sei/auth/internal/config"
 
 	desc "github.com/ako10sei/auth/pkg/user_v1"
 	"google.golang.org/grpc"
@@ -88,7 +89,7 @@ func (s *server) Get(_ context.Context, req *desc.GetRequest) (*desc.GetResponse
 
 	user, exists := s.users[req.GetId()]
 	if !exists {
-		return nil, fmt.Errorf(userNotFound)
+		return nil, fmt.Errorf("err:%v", userNotFound)
 	}
 
 	log.Printf("Retrieved user with ID: %d", req.GetId())
@@ -104,7 +105,7 @@ func (s *server) Update(_ context.Context, req *desc.UpdateRequest) (*emptypb.Em
 
 	user, exists := s.users[req.GetId()]
 	if !exists {
-		return nil, fmt.Errorf(userNotFound)
+		return nil, fmt.Errorf("err:%v", userNotFound)
 	}
 
 	if req.GetName() != nil {
@@ -125,7 +126,7 @@ func (s *server) Delete(_ context.Context, req *desc.DeleteRequest) (*emptypb.Em
 
 	_, exists := s.users[req.GetId()]
 	if !exists {
-		return nil, fmt.Errorf(userNotFound)
+		return nil, fmt.Errorf("err:%v", userNotFound)
 	}
 
 	delete(s.users, req.GetId())
